@@ -11,7 +11,7 @@ export class PlacesService {
       'p1',
       'Manhattan Mansion',
       'In the heart of New York City.',
-      'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80',
+      'https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?q=80&w=3540&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
       149.99
     ),
     new Place(
@@ -36,7 +36,7 @@ export class PlacesService {
       'p1',
       'Manhattan Mansion',
       'In the heart of New York City.',
-      'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80',
+      'https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?q=80&w=3540&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
       149.99
     ),
     new Place(
