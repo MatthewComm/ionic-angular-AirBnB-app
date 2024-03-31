@@ -1,3 +1,19 @@
-<p>
-  create-booking works!
-</p>
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{ selectedPlace.title }}</ion-title>
+    <ion-buttons slot="primary" (click)="onCancel()">
+      <ion-icon slot="icon-only" name="close"></ion-icon>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-text-center">
+  <p>{{ selectedPlace.description }}</p>
+  <ion-grid>
+    <ion-row>
+      <ion-col>
+        <ion-button (click)="onBookPlace()" color="primary">Book Place</ion-button>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-content>
