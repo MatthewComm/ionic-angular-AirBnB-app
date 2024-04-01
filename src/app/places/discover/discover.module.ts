@@ -13,7 +13,7 @@ import { DiscoverPage } from './discover.page';
     CommonModule,
     FormsModule,
     IonicModule,
-    DiscoverPageRoutingModule
+    DiscoverPageRoutingModule,
   ],
   declarations: [DiscoverPage]
 })
