@@ -4,8 +4,57 @@
       <ion-back-button defaultHref="/places/tabs/offers/{{place.id}}"></ion-back-button>
     </ion-buttons>
     <ion-title>Edit {{ place.title }}</ion-title>
+    <ion-buttons slot="primary">
+      <ion-button (click)="onEditOffer()">
+        <ion-icon slot="icon-only" name="checkmark"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
-</ion-header>
+</ion-header> <form [formGroup]="form">
+  <ion-grid>
+    <ion-row>
+      <ion-col>
+        <ion-img [src]="place.imageUrl" alt="place.title"></ion-img>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col size-sm="6" offset-sm="3">
+        <ion-item>
+          <ion-label id="title-label" position="floating">Title</ion-label>
+          <ion-input
+            aria-labelledby="title-label"
+            type="text"
+            autocomplete
+            autocorrect
+            formControlName="title"
+          >
+          </ion-input>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col size-sm="6" offset-sm="3">
+        <ion-item>
+          <ion-label id="description-label" position="floating">Short Description</ion-label>
+          <ion-textarea
+            aria-labelledby="description-label"
+            type="text"
+            rows="3"
+            formControlName="description"
+          >
+          </ion-textarea>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+    <ion-row *ngIf="!form.get('description')?.valid && form.get('description')?.touched">
+      <ion-col size-sm="6" offset-sm="3">
+        <p>
+          Description must be between 1 and 180 characters.
+        </p>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</form>
 
 <ion-content [fullscreen]="true">
 
