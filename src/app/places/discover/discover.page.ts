@@ -30,14 +30,10 @@ export class DiscoverPage implements OnInit, OnDestroy {
       this.loadedPlaces = places;
       this.relevantPlaces = this.loadedPlaces;
       this.listedLoadedPlaces = this.relevantPlaces.slice(1);
-      console.log(this.loadedPlaces);
-      console.log(this.listedLoadedPlaces);
-      console.log(this.relevantPlaces);
     });
   }
 
   onFilterUpdate(event: CustomEvent<SegmentChangeEventDetail>) {
-    console.log('Segment changed to:', event.detail.value);
     if (event.detail.value === 'all') {
       this.relevantPlaces = this.loadedPlaces;
     } else if (event.detail.value === 'bookable') {
