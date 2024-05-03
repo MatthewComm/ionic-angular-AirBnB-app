@@ -68,7 +68,7 @@ export class PlaceDetailPage implements OnInit {
     console.log(mode);
     this.modalController.create({
       component: CreateBookingComponent,
-      componentProps: {selectedPlace: this.place}
+      componentProps: {selectedPlace: this.place, selectedMode: mode}
     }).then(modalElement => {
       modalElement.present();
       return modalElement.onDidDismiss();
