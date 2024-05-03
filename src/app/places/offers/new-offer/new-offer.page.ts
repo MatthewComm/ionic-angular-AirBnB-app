@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { ModalController, ScrollDetail } from '@ionic/angular';
+import { LoadingController, ScrollDetail } from '@ionic/angular';
 import { PlacesService } from '../../places-service.service';
 import { Router } from '@angular/router';
 
@@ -16,6 +16,7 @@ export class NewOfferPage implements OnInit {
   constructor(
     private placeService: PlacesService,
     private routrer: Router,
+    private loadingController: LoadingController
   ) {
     this.form = new FormGroup({});
   }
@@ -62,18 +63,22 @@ export class NewOfferPage implements OnInit {
       return;
     }
 
-    console.log(this.form.value);
-
-    this.placeService.addPlace(
-      this.form.value.title,
-      this.form.value.description,
-      this.form.value.price,
-      new Date(this.form.value.dateFrom),
-      new Date(this.form.value.dateTo)
-    );
-
-    this.form.reset();
-    this.routrer.navigate(['/places/tabs/offers']);
+    this.loadingController.create({
+      message: 'Creating place...'
+    }).then(loadingEl => {
+      loadingEl.present();
+      this.placeService.addPlace(
+        this.form.value.title,
+        this.form.value.description,
+        +this.form.value.price,
+        new Date(this.form.value.dateFrom),
+        new Date(this.form.value.dateTo)
+      ).subscribe(() => {
+        loadingEl.dismiss();
+        this.form.reset();
+        this.routrer.navigate(['/places/tabs/offers']);
+      });
+    });
   }
 
 }

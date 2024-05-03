@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Place } from './places.models';
 import { AuthService } from '../auth/auth.service';
-import { BehaviorSubject, map, take } from 'rxjs';
+import { BehaviorSubject, delay, map, take, tap } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -81,19 +81,22 @@ export class PlacesService {
     }));
   };
 
-addPlace(title: string, description: string, price: number, dateFrom: Date, dateTo: Date) {
-  const newPlace = new Place(
-    Math.random().toString(),
-    title,
-    description,
-    'https://images.unsplash.com/photo-1486572788966-cfd3df1f5b42?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80',
-    price,
-    dateFrom,
-    dateTo,
-    this.authService.userId
-  );
-  this.places.pipe(take(1)).subscribe((places) => {
-    this._places.next(places.concat(newPlace));
-  });
-}
+  addPlace(title: string, description: string, price: number, dateFrom: Date, dateTo: Date) {
+    const newPlace = new Place(
+      Math.random().toString(),
+      title,
+      description,
+      'https://images.unsplash.com/photo-1486572788966-cfd3df1f5b42?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80',
+      price,
+      dateFrom,
+      dateTo,
+      this.authService.userId
+    );
+    return this.places.pipe(
+      take(1),
+      delay(1000),
+      tap(places => {
+        this._places.next(places.concat(newPlace));
+    }));
+  }
 }
