@@ -6,6 +6,7 @@ import { Place } from '../../places.models';
 import { CreateBookingComponent } from 'src/app/bookings/create-booking/create-booking.component';
 import { Subscription } from 'rxjs';
 import { BookingsService } from 'src/app/bookings/bookings.service';
+import { AuthService } from 'src/app/auth/auth.service';
 
 @Component({
   selector: 'app-place-detail',
@@ -15,6 +16,8 @@ import { BookingsService } from 'src/app/bookings/bookings.service';
 export class PlaceDetailPage implements OnInit, OnDestroy {
 
   place: Place;
+  isBookable = false;
+
   private placeSub: Subscription = new Subscription();
 
   constructor(
@@ -24,7 +27,8 @@ export class PlaceDetailPage implements OnInit, OnDestroy {
     private modalController: ModalController,
     private actionSheetController: ActionSheetController,
     private bookingService: BookingsService,
-    private loadingController: LoadingController
+    private loadingController: LoadingController,
+    private authService: AuthService
   ) {
     this.place = {} as Place;
   }
@@ -38,6 +42,7 @@ export class PlaceDetailPage implements OnInit, OnDestroy {
       const placeId = paramMap.get('placeId')!;
       this.placeSub = this.placesService.getPlace(placeId).subscribe(place => {
         this.place = place as Place;
+        this.isBookable = place.userID !== this.authService.userId;
       });
     });
   }
@@ -73,7 +78,6 @@ export class PlaceDetailPage implements OnInit, OnDestroy {
   }
 
   openBookingModal(mode: 'select' | 'random') {
-    console.log(mode);
     this.modalController.create({
       component: CreateBookingComponent,
       componentProps: { selectedPlace: this.place, selectedMode: mode }
