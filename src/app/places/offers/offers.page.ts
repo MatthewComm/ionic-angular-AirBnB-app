@@ -12,6 +12,7 @@ import { IonItemSliding } from '@ionic/angular';
 export class OffersPage implements OnInit, OnDestroy {
 
   loadedOffers: Place[] = [];
+  isLoading = false;
   private placesSub: Subscription = new Subscription();
 
   constructor(private placesService: PlacesService) { }
@@ -19,6 +20,13 @@ export class OffersPage implements OnInit, OnDestroy {
   ngOnInit() {
     this.placesSub = this.placesService.places.subscribe(places => {
       this.loadedOffers = places;
+    });
+  }
+
+  ionViewWillEnter() {
+    this.isLoading = true;
+    this.placesService.fetchPlaces().subscribe(() => {
+      this.isLoading = false;
     });
   }
 
