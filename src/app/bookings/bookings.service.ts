@@ -1,7 +1,21 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, delay, take, tap } from 'rxjs';
+import { BehaviorSubject, delay, take, tap, switchMap } from 'rxjs';
 import { Booking } from './bookings.model';
 import { AuthService } from '../auth/auth.service';
+import { HttpClient } from '@angular/common/http';
+
+
+interface BookingData {
+  bookedFrom: string;
+  bookedTo: string;
+  firstName: string;
+  guestNumber: number;
+  lastName: string;
+  placeId: string;
+  placeImage: string;
+  placeTitle: string;
+  userId: string;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -9,9 +23,11 @@ import { AuthService } from '../auth/auth.service';
 export class BookingsService {
 
   private _bookings = new BehaviorSubject<Booking[]>([]);
+  isLoading: Boolean = false;
 
   constructor(
     private authService: AuthService,
+    private http: HttpClient
   ) { }
 
   get bookings() {
@@ -29,6 +45,7 @@ export class BookingsService {
     dateFrom: Date,
     dateTo: Date
   ) {
+    let generatedId: string;
     const newBooking = new Booking(
       Math.random().toString(),
       placeId,
@@ -42,13 +59,19 @@ export class BookingsService {
       dateTo,
     );
 
-    return this.bookings.pipe(
-      take(1),
-      delay(1000),
-      tap(bookings => {
-        this._bookings.next(bookings.concat(newBooking));
-      }
-      ))
+    return this.http.post<{ name: string }>('https://ionic-angular-airbnb-app-default-rtdb.europe-west1.firebasedatabase.app/bookings.json', { ...newBooking, id: null })
+      .pipe(
+        switchMap(resData => {
+          generatedId = resData.name;
+          return this.bookings;
+        }
+        ),
+        take(1),
+        tap(bookings => {
+          newBooking.id = generatedId;
+          this._bookings.next(bookings.concat(newBooking));
+        })
+      );
   }
 
   //Method for cancelling a booking.
@@ -60,5 +83,35 @@ export class BookingsService {
         this._bookings.next(bookings.filter(b => b.id !== bookingId));
       })
     )
+  }
+
+  fetchBookings() {
+    return this.http.get<{ [key: string]: BookingData }>(`https://ionic-angular-airbnb-app-default-rtdb.europe-west1.firebasedatabase.app/bookings.json?orderBy="userId"&equalTo="${this.authService.userId}"`)
+      .pipe(
+        switchMap(resDats => {
+          const bookings = [];
+          for (const key in resDats) {
+            if (resDats.hasOwnProperty(key)) {
+              bookings.push(new Booking(
+                key,
+                resDats[key].placeId,
+                resDats[key].userId,
+                resDats[key].placeTitle,
+                resDats[key].placeImage,
+                resDats[key].firstName,
+                resDats[key].lastName,
+                resDats[key].guestNumber,
+                new Date(resDats[key].bookedFrom),
+                new Date(resDats[key].bookedTo),
+              ));
+            }
+          }
+          return bookings;
+        }),
+        take(1),
+        tap(bookings => {
+          this._bookings.next([bookings]);
+        })
+      )
   }
 }
