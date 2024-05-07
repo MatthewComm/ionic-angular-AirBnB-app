@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Place } from './places.models';
 import { AuthService } from '../auth/auth.service';
-import { BehaviorSubject, delay, map, switchMap, take, tap } from 'rxjs';
+import { BehaviorSubject, delay, map, switchMap, take, tap, of } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 
 
@@ -93,9 +93,21 @@ export class PlacesService {
   ) { }
 
   getPlace(id: string) {
-    return this.places.pipe(take(1), map((places) => {
-      return { ...places.find((p) => p.id === id) };
-    }));
+    return this.http.get(`https://ionic-angular-airbnb-app-default-rtdb.europe-west1.firebasedatabase.app/offered-places/${id}.json`)
+      .pipe(
+        map((placeData: any) => {
+          return new Place(
+            id,
+            placeData.title,
+            placeData.description,
+            placeData.imageUrl,
+            placeData.price,
+            new Date(placeData.availableFrom),
+            new Date(placeData.availableTo),
+            placeData.userID
+          );
+        })
+      );
   };
 
   fetchPlaces() {
@@ -165,7 +177,15 @@ export class PlacesService {
     return this._places.pipe(
       take(1),
       switchMap(places => {
-        const updatedPlaceIndex = places.findIndex(p => p.id === placeId);
+        if (!places || places.length <= 0) {
+          return this.fetchPlaces();
+        } else {
+          return of(places);
+        }
+
+      }),
+      switchMap(places => {
+        const updatedPlaceIndex = places.findIndex(pl => pl.id === placeId);
         updatedPlaces = [...places];
         const oldPlace = updatedPlaces[updatedPlaceIndex];
         updatedPlaces[updatedPlaceIndex] = new Place(
@@ -178,8 +198,7 @@ export class PlacesService {
           oldPlace.availableTo,
           oldPlace.userID
         );
-        return this.http.put(`https://ionic-angular-airbnb-app-default-rtdb.europe-west1.firebasedatabase.app/offered-places/${placeId}.json`,
-          { ...updatedPlaces[updatedPlaceIndex], id: null });
+        return this.http.put(`https://ionic-angular-airbnb-app-default-rtdb.europe-west1.firebasedatabase.app/offered-places/${placeId}.json`, { ...updatedPlaces[updatedPlaceIndex], id: null });
       }),
       tap(() => {
         this._places.next(updatedPlaces);
