@@ -61,12 +61,11 @@
           <ion-button
             type="submit"
             color="primary"
-            (click)="onLogin()"
             *ngIf="!isLoading"
             expand="block"
             [disabled]="!f.valid"
           >
-            Login
+            {{ isLoginMode ? 'LOGIN' : 'SIGNUP' }}
           </ion-button>
         </ion-col>
       </ion-row>
