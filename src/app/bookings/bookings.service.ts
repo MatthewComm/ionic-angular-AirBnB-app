@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, delay, take, tap, switchMap } from 'rxjs';
+import { BehaviorSubject, delay, take, tap, switchMap, map } from 'rxjs';
 import { Booking } from './bookings.model';
 import { AuthService } from '../auth/auth.service';
 import { HttpClient } from '@angular/common/http';
@@ -76,19 +76,22 @@ export class BookingsService {
 
   //Method for cancelling a booking.
   cancelBooking(bookingId: string) {
-    return this.bookings.pipe(
-      take(1),
-      delay(1000),
-      tap(bookings => {
-        this._bookings.next(bookings.filter(b => b.id !== bookingId));
-      })
-    )
+    return this.http.delete(`https://ionic-angular-airbnb-app-default-rtdb.europe-west1.firebasedatabase.app/bookings/${bookingId}.json`)
+      .pipe(
+        switchMap(() => {
+          return this.bookings;
+        }),
+        take(1),
+        tap(bookings => {
+          this._bookings.next(bookings.filter(b => b.id !== bookingId));
+        })
+      )
   }
 
   fetchBookings() {
-    return this.http.get<{ [key: string]: BookingData }>(`https://ionic-angular-airbnb-app-default-rtdb.europe-west1.firebasedatabase.app/bookings.json?orderBy="userId"&equalTo="${this.authService.userId}"`)
+    return this.http.get<{[key: string]: BookingData }>(`https://ionic-angular-airbnb-app-default-rtdb.europe-west1.firebasedatabase.app/bookings.json?orderBy="userId"&equalTo="${this.authService.userId}"`)
       .pipe(
-        switchMap(resDats => {
+        map(resDats => {
           const bookings = [];
           for (const key in resDats) {
             if (resDats.hasOwnProperty(key)) {
@@ -110,7 +113,7 @@ export class BookingsService {
         }),
         take(1),
         tap(bookings => {
-          this._bookings.next([bookings]);
+          this._bookings.next(bookings);
         })
       )
   }

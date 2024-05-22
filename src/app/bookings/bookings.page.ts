@@ -13,6 +13,7 @@ export class BookingsPage implements OnInit, OnDestroy {
 
   loadedBookings: Booking[] = [];
   bookingsSub: Subscription = new Subscription();
+  isLoading: Boolean = false;
 
   constructor(
     private bookingsService: BookingsService,
@@ -24,14 +25,14 @@ export class BookingsPage implements OnInit, OnDestroy {
     console.log(this.loadedBookings)
 
     this.bookingsSub = this.bookingsService.bookings.subscribe(bookings => {
-      if (bookings.length > 0) {
-        this.loadedBookings = bookings;
-      }else{
-        this.bookingsService.fetchBookings().subscribe(() => {
-          this.loadedBookings = bookings;
-        });
-      }
       this.loadedBookings = bookings;
+    });
+  }
+
+  ionViewWillEnter() {
+    this.isLoading = true;
+    this.bookingsService.fetchBookings().subscribe(() => {
+      this.isLoading = false;
     });
   }
 
