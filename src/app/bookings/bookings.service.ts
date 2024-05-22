@@ -46,33 +46,43 @@ export class BookingsService {
     dateTo: Date
   ) {
     let generatedId: string;
-    const newBooking = new Booking(
-      Math.random().toString(),
-      placeId,
-      this.authService.userId,
-      placeTitle,
-      placeImage,
-      firstName,
-      lastName,
-      guestNumber,
-      dateFrom,
-      dateTo,
-    );
+    let newBooking: Booking;
 
-    return this.http.post<{ name: string }>('https://ionic-angular-airbnb-app-default-rtdb.europe-west1.firebasedatabase.app/bookings.json', { ...newBooking, id: null })
-      .pipe(
-        switchMap(resData => {
-          generatedId = resData.name;
-          return this.bookings;
+    return this.authService.userId.pipe(
+      take(1),
+      switchMap(userId => {
+        if (!userId) {
+          throw new Error('No user ID found!');
         }
-        ),
-        take(1),
-        tap(bookings => {
-          newBooking.id = generatedId;
-          this._bookings.next(bookings.concat(newBooking));
-        })
-      );
+        newBooking = new Booking(
+          Math.random().toString(),
+          placeId,
+          userId,
+          placeTitle,
+          placeImage,
+          firstName,
+          lastName,
+          guestNumber,
+          dateFrom,
+          dateTo,
+        );
+        return this.http.post<{ name: string }>(
+          'https://ionic-angular-airbnb-app-default-rtdb.europe-west1.firebasedatabase.app/bookings.json',
+          { ...newBooking, id: null }
+        );
+      }),
+      switchMap(resData => {
+        generatedId = resData.name;
+        return this.bookings;
+      }),
+      take(1),
+      tap(bookings => {
+        newBooking.id = generatedId;
+        this._bookings.next(bookings.concat(newBooking));
+      })
+    );
   }
+
 
   //Method for cancelling a booking.
   cancelBooking(bookingId: string) {
@@ -89,7 +99,7 @@ export class BookingsService {
   }
 
   fetchBookings() {
-    return this.http.get<{[key: string]: BookingData }>(`https://ionic-angular-airbnb-app-default-rtdb.europe-west1.firebasedatabase.app/bookings.json?orderBy="userId"&equalTo="${this.authService.userId}"`)
+    return this.http.get<{ [key: string]: BookingData }>(`https://ionic-angular-airbnb-app-default-rtdb.europe-west1.firebasedatabase.app/bookings.json?orderBy="userId"&equalTo="${this.authService.userId}"`)
       .pipe(
         map(resDats => {
           const bookings = [];

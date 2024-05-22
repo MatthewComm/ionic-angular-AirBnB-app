@@ -138,39 +138,43 @@ export class PlacesService {
   }
 
   addPlace(title: string, description: string, price: number, dateFrom: Date, dateTo: Date) {
-
     let generatedId: string;
+    let newPlace: Place;
 
-    const newPlace = new Place(
-      Math.random().toString(),
-      title,
-      description,
-      'https://images.unsplash.com/photo-1486572788966-cfd3df1f5b42?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80',
-      price,
-      dateFrom,
-      dateTo,
-      this.authService.userId
+    return this.authService.userId.pipe(
+      take(1),
+      switchMap(userId => {
+        if (!userId) {
+          throw new Error('No user ID found!');
+        }
+        newPlace = new Place(
+          Math.random().toString(),
+          title,
+          description,
+          'https://images.unsplash.com/photo-1486572788966-cfd3df1f5b42?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80',
+          price,
+          dateFrom,
+          dateTo,
+          userId
+        );
+        return this.http.post<{ name: string }>(
+          'https://ionic-angular-airbnb-app-default-rtdb.europe-west1.firebasedatabase.app/offered-places.json',
+          { ...newPlace, id: null }
+        );
+      }),
+      switchMap(resData => {
+        generatedId = resData.name;
+        return this.places;
+      }),
+      take(1),
+      tap(places => {
+        newPlace.id = generatedId;
+        this._places.next(places.concat(newPlace));
+      })
     );
-    return this.http.post<{ name: string }>('https://ionic-angular-airbnb-app-default-rtdb.europe-west1.firebasedatabase.app/offered-places.json', { ...newPlace, id: null })
-      .pipe(
-        switchMap((resData) => {
-          generatedId = resData.name;
-          return this.places;
-        }),
-        take(1),
-        tap(places => {
-          newPlace.id = generatedId;
-          this._places.next(places.concat(newPlace));
-        })
-      );
-
-    // return this.places.pipe(
-    //   take(1),
-    //   delay(1000),
-    //   tap(places => {
-    //     this._places.next(places.concat(newPlace));
-    // }));
   }
+
+
 
   updatePlace(placeId: string, title: string, description: string) {
     let updatedPlaces: Place[];

@@ -4,7 +4,7 @@ import { ActionSheetController, LoadingController, ModalController, NavControlle
 import { PlacesService } from '../../places-service.service';
 import { Place } from '../../places.models';
 import { CreateBookingComponent } from 'src/app/bookings/create-booking/create-booking.component';
-import { Subscription } from 'rxjs';
+import { Subscription, switchMap } from 'rxjs';
 import { BookingsService } from 'src/app/bookings/bookings.service';
 import { AuthService } from 'src/app/auth/auth.service';
 
@@ -39,11 +39,20 @@ export class PlaceDetailPage implements OnInit, OnDestroy {
         this.navController.navigateBack('/places/tabs/discover');
         return;
       }
-      const placeId = paramMap.get('placeId')!;
-      this.placeSub = this.placesService.getPlace(placeId).subscribe(place => {
-        this.place = place as Place;
-        this.isBookable = place.userID !== this.authService.userId;
-      });
+      let fetchedUserId: string;
+      const placeId = paramMap.get('placeId');
+      if (placeId) {
+        this.authService.userId.pipe(switchMap(userId => {
+          if (!userId) {
+            throw new Error('No user ID found!');
+          }
+          fetchedUserId = userId;
+          return this.placesService.getPlace(placeId);
+        })).subscribe(place => {
+          this.place = place as Place;
+          this.isBookable = place.userID !== fetchedUserId;
+        });
+      }
     });
   }
 

@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, map } from 'rxjs';
+import { BehaviorSubject, map, tap } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { User } from './user.model';
 
@@ -24,11 +24,11 @@ export class AuthService {
 
   constructor(
     private http: HttpClient
-  ) {}
+  ) { }
 
   get userIsAuthenticated() {
     return this._user.asObservable().pipe(map(user => {
-      if ( user) {
+      if (user) {
         return !!user;
       } else {
         return false;
@@ -46,26 +46,41 @@ export class AuthService {
     ));
   }
 
-  signUp(email:string, password: string) {
+  signUp(email: string, password: string) {
     const requestData = {
       email: email,
       password: password,
       returnSecureToken: true
     };
     return this.http.post<AuthResponseData>(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${environment.firebaseApiKey}`, requestData)
-
+      .pipe(
+        tap(userData => {
+          const expirationTime = new Date(new Date().getTime() + (+userData.expiresIn * 1000));
+          this._user.next(
+            new User(userData.localId, userData.email, userData.idToken, expirationTime)
+          );
+        })
+      );
   }
 
-  login(email: string, password: string) {
-    const requestBody = {
-      email: email,
-      password: password,
-      returnSecureToken: true
-    };
-    return this.http.post<AuthResponseData>(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${environment.firebaseApiKey}`, requestBody)
-  }
+login(email: string, password: string) {
+  const requestBody = {
+    email: email,
+    password: password,
+    returnSecureToken: true
+  };
+  return this.http.post<AuthResponseData>(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${environment.firebaseApiKey}`, requestBody)
+    .pipe(
+      tap(userData => {
+        const expirationTime = new Date(new Date().getTime() + (+userData.expiresIn * 1000));
+        this._user.next(
+          new User(userData.localId, userData.email, userData.idToken, expirationTime)
+        );
+      })
+    );
+}
 
-  logout() {
-    this._user.next({} as User);
-  }
+logout() {
+  this._user.next({} as User);
+}
 }

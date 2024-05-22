@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { PlacesService } from '../places-service.service';
 import { Place } from '../places.models';
 import { SegmentChangeEventDetail } from '@ionic/angular';
-import { Subscription } from 'rxjs';
+import { Subscription, take } from 'rxjs';
 import { AuthService } from 'src/app/auth/auth.service';
 
 @Component({
@@ -44,16 +44,18 @@ export class DiscoverPage implements OnInit, OnDestroy {
   }
 
   onFilterUpdate(event: CustomEvent<SegmentChangeEventDetail>) {
-    if (event.detail.value === 'all') {
-      this.relevantPlaces = this.loadedPlaces;
-    } else if (event.detail.value === 'bookable') {
-      this.relevantPlaces = this.loadedPlaces.filter(
-        place => place.userID === this.authService.userId
-      );
-    } else {
-      // Consider handling unexpected segment values
-      this.relevantPlaces = [];
-    }
+    this.authService.userId.pipe(take(1)).subscribe(userId => {
+      if (event.detail.value === 'all') {
+        this.relevantPlaces = this.loadedPlaces;
+      } else if (event.detail.value === 'bookable') {
+        this.relevantPlaces = this.loadedPlaces.filter(
+          place => place.userID === userId
+        );
+      } else {
+        // Consider handling unexpected segment values
+        this.relevantPlaces = [];
+      }
+    });
   }
 
 
