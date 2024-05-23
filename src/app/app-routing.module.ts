@@ -10,26 +10,26 @@ const routes: Routes = [
   },
   {
     path: 'auth',
-    loadChildren: () => import('./auth/auth.module').then( m => m.AuthPageModule)
+    loadChildren: () => import('./auth/auth.module').then(m => m.AuthPageModule)
   },
   {
     path: 'places',
-    loadChildren: () => import('./places/places.module').then( m => m.PlacesPageModule),
-    canLoad: [AuthGuard]
+    loadChildren: () => import('./places/places.module').then(m => m.PlacesPageModule),
+    canMatch: [AuthGuard]
   },
   {
     path: 'discover',
-    loadChildren: () => import('./places/discover/discover.module').then( m => m.DiscoverPageModule)
+    loadChildren: () => import('./places/discover/discover.module').then(m => m.DiscoverPageModule)
   },
   {
     path: 'offers',
-    loadChildren: () => import('./places/offers/offers.module').then( m => m.OffersPageModule)
+    loadChildren: () => import('./places/offers/offers.module').then(m => m.OffersPageModule)
   },
   {
     path: 'bookings',
-    loadChildren: () => import('./bookings/bookings.module').then( m => m.BookingsPageModule),
-    canLoad: [AuthGuard]
-  },
+    loadChildren: () => import('./bookings/bookings.module').then(m => m.BookingsPageModule),
+    canMatch: [AuthGuard]
+  }
 ];
 
 @NgModule({
@@ -38,4 +38,4 @@ const routes: Routes = [
   ],
   exports: [RouterModule]
 })
-export class AppRoutingModule { }
+export class AppRoutingModule {}

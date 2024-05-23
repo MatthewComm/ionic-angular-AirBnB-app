@@ -27,14 +27,17 @@ export class AuthService {
   ) { }
 
   get userIsAuthenticated() {
-    return this._user.asObservable().pipe(map(user => {
-      if (user) {
-        return !!user;
-      } else {
-        return false;
-      }
-    }));
+    return this._user.asObservable().pipe(
+      map(user => {
+        if (user && user.id && user.token) {
+          return true;
+        } else {
+          return false;
+        }
+      })
+    );
   }
+
 
   get userId() {
     return this._user.asObservable().pipe(map(user => {

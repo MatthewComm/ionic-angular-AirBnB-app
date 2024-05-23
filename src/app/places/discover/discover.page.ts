@@ -35,12 +35,10 @@ export class DiscoverPage implements OnInit, OnDestroy {
   }
 
   ionViewWillEnter() {
-    console.log(this.isLoading)
     this.isLoading = true;
     this.placesService.fetchPlaces().subscribe(() => {
       this.isLoading = false;
     });
-    console.log(this.isLoading)
   }
 
   onFilterUpdate(event: CustomEvent<SegmentChangeEventDetail>) {
