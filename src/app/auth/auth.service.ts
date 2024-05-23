@@ -121,6 +121,7 @@ export class AuthService {
 
   logout() {
     this._user.next({} as User);
+    Preferences.remove({ key: 'authData' });
   }
 
   async storeAuthData(userId: string, token: string, tokenExpirationDate: string, email: string) {
