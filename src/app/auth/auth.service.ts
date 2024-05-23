@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject, map, tap, from } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { User } from './user.model';
@@ -19,9 +19,10 @@ export interface AuthResponseData {
 @Injectable({
   providedIn: 'root'
 })
-export class AuthService {
+export class AuthService implements OnDestroy {
 
   private _user = new BehaviorSubject<User>({} as User);
+  private activeLogoutTimer: any;
 
   constructor(
     private http: HttpClient
@@ -75,6 +76,7 @@ export class AuthService {
       tap(user => {
         if (user) {
           this._user.next(user);
+          this.autoLogout(user.tokenDuration);
         }
       }),
       map(user => {
@@ -89,17 +91,19 @@ export class AuthService {
       password: password,
       returnSecureToken: true
     };
+
     return this.http.post<AuthResponseData>(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${environment.firebaseApiKey}`, requestData)
       .pipe(
         tap(userData => {
           const expirationTime = new Date(new Date().getTime() + (+userData.expiresIn * 1000));
-          this._user.next(
-            new User(userData.localId, userData.email, userData.idToken, expirationTime)
-          );
+          const user = new User(userData.localId, userData.email, userData.idToken, expirationTime);
+          this._user.next(user);
           this.storeAuthData(userData.localId, userData.idToken, expirationTime.toISOString(), userData.email);
+          this.autoLogout(Number(userData.expiresIn));
         })
       );
   }
+
 
   login(email: string, password: string) {
     const requestBody = {
@@ -115,18 +119,37 @@ export class AuthService {
             new User(userData.localId, userData.email, userData.idToken, expirationTime)
           );
           this.storeAuthData(userData.localId, userData.idToken, expirationTime.toISOString(), userData.email);
+          this.autoLogout(Number(userData.expiresIn));
         })
       );
   }
 
   logout() {
+    if (this.activeLogoutTimer) {
+      clearTimeout(this.activeLogoutTimer);
+    }
     this._user.next({} as User);
     Preferences.remove({ key: 'authData' });
+  }
+
+  private autoLogout(expirationDuration: number) {
+    if (this.activeLogoutTimer) {
+      clearTimeout(this.activeLogoutTimer);
+    }
+    this.activeLogoutTimer = setTimeout(() => {
+      this.logout();
+    }, expirationDuration);
   }
 
   async storeAuthData(userId: string, token: string, tokenExpirationDate: string, email: string) {
     const data = JSON.stringify({ userId, token, tokenExpirationDate, email});
     await Preferences.set({ key: 'authData', value: data });
+  }
+
+  ngOnDestroy() {
+    if (this.activeLogoutTimer) {
+      clearTimeout(this.activeLogoutTimer);
+    }
   }
 }
 
