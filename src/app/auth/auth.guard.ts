@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { CanMatchFn, Route, UrlSegment, Router, UrlTree } from '@angular/router';
-import { Observable, map, take } from 'rxjs';
+import { Observable, map, take, switchMap, of } from 'rxjs';
 import { AuthService } from './auth.service';
 
 @Injectable({
@@ -12,11 +12,19 @@ export class AuthGuard {
   canMatch(): Observable<boolean | UrlTree> {
     return this.authService.userIsAuthenticated.pipe(
       take(1),
-      map(isAuthenticated => {
-        if (isAuthenticated) {
-          return true;
+      switchMap(isAuthenticated => {
+        if (!isAuthenticated) {
+          return this.authService.autoLogin().pipe(
+            map(autoLoggedIn => {
+              if (autoLoggedIn) {
+                return true;
+              } else {
+                return this.router.createUrlTree(['/auth']);
+              }
+            })
+          );
         } else {
-          return this.router.createUrlTree(['/auth']);
+          return of(true);
         }
       })
     );
