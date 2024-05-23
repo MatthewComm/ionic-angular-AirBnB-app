@@ -99,32 +99,42 @@ export class BookingsService {
   }
 
   fetchBookings() {
-    return this.http.get<{ [key: string]: BookingData }>(`https://ionic-angular-airbnb-app-default-rtdb.europe-west1.firebasedatabase.app/bookings.json?orderBy="userId"&equalTo="${this.authService.userId}"`)
-      .pipe(
-        map(resDats => {
-          const bookings = [];
-          for (const key in resDats) {
-            if (resDats.hasOwnProperty(key)) {
-              bookings.push(new Booking(
+    return this.authService.userId.pipe(
+      take(1),
+      switchMap(userId => {
+        if (!userId) {
+          throw new Error('User not found!');
+        }
+        return this.http.get<{ [key: string]: BookingData }>(
+          `https://ionic-angular-airbnb-app-default-rtdb.europe-west1.firebasedatabase.app/bookings.json?orderBy="userId"&equalTo="${userId}"`
+        );
+      }),
+      map(resData => {
+        const bookings = [];
+        for (const key in resData) {
+          if (resData.hasOwnProperty(key)) {
+            bookings.push(
+              new Booking(
                 key,
-                resDats[key].placeId,
-                resDats[key].userId,
-                resDats[key].placeTitle,
-                resDats[key].placeImage,
-                resDats[key].firstName,
-                resDats[key].lastName,
-                resDats[key].guestNumber,
-                new Date(resDats[key].bookedFrom),
-                new Date(resDats[key].bookedTo),
-              ));
-            }
+                resData[key].placeId,
+                resData[key].userId,
+                resData[key].placeTitle,
+                resData[key].placeImage,
+                resData[key].firstName,
+                resData[key].lastName,
+                resData[key].guestNumber,
+                new Date(resData[key].bookedFrom),
+                new Date(resData[key].bookedTo)
+              )
+            );
           }
-          return bookings;
-        }),
-        take(1),
-        tap(bookings => {
-          this._bookings.next(bookings);
-        })
-      )
+        }
+        return bookings;
+      }),
+      tap(bookings => {
+        this._bookings.next(bookings);
+      })
+    );
   }
 }
+
